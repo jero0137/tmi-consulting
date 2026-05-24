@@ -1,0 +1,26 @@
+﻿# Entorno
+.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Data (el CSV no sube al repo)
+data/raw/*.csv
+
+# Airflow
+airflow/logs/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/.user.yml
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
