@@ -9,8 +9,9 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
     AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY}
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    # PRINCIPAL DATABASE CONNECTION
-    PIPELINE_DB_CONN: "postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+    # Override host so Airflow containers reach postgres_data by its Docker service name
+    POSTGRES_HOST: postgres_data
+    PIPELINE_DB_CONN: "postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_data:${POSTGRES_PORT}/${POSTGRES_DB}"
   volumes:
     - ./airflow/dags:/opt/airflow/dags      
     - ./airflow/logs:/opt/airflow/logs       
