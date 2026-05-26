@@ -1,14 +1,4 @@
-{{
-    config(
-        pre_hook="SET LOCAL work_mem = '512MB'",
-        post_hook=[
-            "ALTER TABLE {{ this }} ADD CONSTRAINT pk_job_skills       PRIMARY KEY (job_id, skill_id)",
-            "ALTER TABLE {{ this }} ADD CONSTRAINT fk_job_skills_job   FOREIGN KEY (job_id)   REFERENCES {{ ref('job_postings') }} (job_id)",
-            "ALTER TABLE {{ this }} ADD CONSTRAINT fk_job_skills_skill FOREIGN KEY (skill_id) REFERENCES {{ ref('skills') }}      (skill_id)",
-            "CREATE INDEX idx_job_skills_skill_id ON {{ this }} (skill_id)"
-        ]
-    )
-}}
+{{ config(pre_hook="SET LOCAL work_mem = '512MB'") }}
 
 -- Bridge table: one row per (job, skill) pair.
 -- Split into three CTEs so the planner can apply each optimisation independently:

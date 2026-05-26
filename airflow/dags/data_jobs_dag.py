@@ -2,14 +2,14 @@
 Data Jobs Pipeline DAG — on-demand only (schedule=None).
 
 Task graph:
-    ingest_raw >> create_marts_schema >> dbt_run >> dbt_test
+    ingest_raw >> dbt_run >> apply_marts_constraints >> dbt_test
 
-ingest_raw          — extract CSV, load raw.data_jobs, clean into
-                      staging.stg_job_postings, run GX validation.
-create_marts_schema — apply sql/marts_schema.sql DDL (creates tables with
-                      PKs, FKs and indexes if they do not already exist).
-dbt_run             — build all marts models (post-hooks re-apply constraints).
-dbt_test            — run all dbt schema + custom SQL tests.
+ingest_raw              — extract CSV, load raw.data_jobs, clean into
+                          staging.stg_job_postings, run GX validation.
+dbt_run                 — build all 6 mart tables (no constraints yet).
+apply_marts_constraints — apply PKs, FKs and indexes from
+                          sql/marts_constraints.sql once all tables exist.
+dbt_test                — run all dbt schema + custom SQL tests.
 """
 from __future__ import annotations
 
@@ -23,9 +23,9 @@ from airflow.operators.python import PythonOperator
 
 log = logging.getLogger(__name__)
 
-_CSV_PATH   = "/opt/airflow/data/raw/data_jobs.csv"
-_DBT_DIR    = "/opt/airflow/dbt"
-_SQL_SCHEMA = "/opt/airflow/sql/marts_schema.sql"
+_CSV_PATH        = "/opt/airflow/data/raw/data_jobs.csv"
+_DBT_DIR         = "/opt/airflow/dbt"
+_SQL_CONSTRAINTS = "/opt/airflow/sql/marts_constraints.sql"
 
 
 # ------------------------------------------------------------------ #
@@ -38,8 +38,8 @@ def _ingest_raw() -> None:
     run_ingest(_CSV_PATH)
 
 
-def _create_marts_schema() -> None:
-    """Apply marts DDL so every table exists with correct structure."""
+def _apply_marts_constraints() -> None:
+    """Apply PKs, FKs and indexes to all mart tables."""
     import psycopg2
 
     conn = psycopg2.connect(
@@ -50,12 +50,12 @@ def _create_marts_schema() -> None:
         dbname=os.environ["POSTGRES_DB"],
     )
     conn.autocommit = True
-    with open(_SQL_SCHEMA) as fh:
-        ddl = fh.read()
+    with open(_SQL_CONSTRAINTS) as fh:
+        sql = fh.read()
     with conn.cursor() as cur:
-        cur.execute(ddl)
+        cur.execute(sql)
     conn.close()
-    log.info("marts_schema.sql applied successfully")
+    log.info("marts_constraints.sql applied successfully")
 
 
 # ------------------------------------------------------------------ #
@@ -76,11 +76,6 @@ with DAG(
         python_callable=_ingest_raw,
     )
 
-    create_marts_schema = PythonOperator(
-        task_id="create_marts_schema",
-        python_callable=_create_marts_schema,
-    )
-
     dbt_run = BashOperator(
         task_id="dbt_run",
         bash_command=(
@@ -88,6 +83,11 @@ with DAG(
             f"--project-dir {_DBT_DIR} "
             f"--profiles-dir {_DBT_DIR}"
         ),
+    )
+
+    apply_marts_constraints = PythonOperator(
+        task_id="apply_marts_constraints",
+        python_callable=_apply_marts_constraints,
     )
 
     dbt_test = BashOperator(
@@ -99,4 +99,4 @@ with DAG(
         ),
     )
 
-    ingest_raw >> create_marts_schema >> dbt_run >> dbt_test
+    ingest_raw >> dbt_run >> apply_marts_constraints >> dbt_test

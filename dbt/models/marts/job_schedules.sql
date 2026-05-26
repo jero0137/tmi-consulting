@@ -1,12 +1,3 @@
-{{
-    config(
-        post_hook=[
-            "ALTER TABLE {{ this }} ADD CONSTRAINT pk_job_schedules      PRIMARY KEY (schedule_id)",
-            "ALTER TABLE {{ this }} ADD CONSTRAINT uq_job_schedules_type UNIQUE      (schedule_type)"
-        ]
-    )
-}}
-
 -- Unique schedule types. normalize_schedule_type (Python) already lowercased
 -- and trimmed these values, so no further transformation is needed.
 SELECT
