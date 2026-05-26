@@ -5,6 +5,7 @@ description = "ELT pipeline — job postings CSV → PostgreSQL → dbt 3NF mode
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
+    "great-expectations>=1.0",
     "lingua-language-detector>=2.1.1",
     "pandas>=3.0.3",
     "psycopg2-binary>=2.9.12",
@@ -15,3 +16,6 @@ dependencies = [
 dev = [
     "pytest>=9.0.3",
 ]
+
+[tool.pytest.ini_options]
+norecursedirs = ["airflow", ".venv", ".git"]

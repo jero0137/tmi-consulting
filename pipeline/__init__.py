@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from pipeline.extract import extract
 from pipeline.load import DatabaseConnection, create_raw_table, load_to_postgres
+from pipeline.quality import validate_staging
 from pipeline.transform import transform_and_load_staging
 
 logging.basicConfig(
@@ -31,6 +32,7 @@ def run_ingest(csv_path: str) -> None:
         df = extract(csv_path)
         load_to_postgres(df, conn)
         transform_and_load_staging(conn)
+        validate_staging(conn)
         logger.info("Ingestion pipeline completed successfully")
     except Exception as exc:
         logger.exception("Ingestion pipeline failed: %s", exc)
