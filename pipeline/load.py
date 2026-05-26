@@ -107,7 +107,7 @@ def load_to_postgres(df: pd.DataFrame, conn: psycopg2.extensions.connection) -> 
     ]
 
     with conn.cursor() as cur:
-        cur.execute("TRUNCATE raw.data_jobs;")
+        cur.execute("TRUNCATE raw.data_jobs RESTART IDENTITY;")
         execute_values(cur, _INSERT_SQL, rows)
     conn.commit()
     logger.info("Loaded %d rows into raw.data_jobs", len(rows))
