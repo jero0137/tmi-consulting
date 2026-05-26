@@ -15,6 +15,7 @@ def _ascii_fold(text: str) -> str:
         c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c)
     ).lower()
 
+
 # Salary-range pattern used to detect company_name values that are actually
 # salary text like "$150K – $199.5K" or "$176K – $234K". Matches "$"-prefixed
 # numbers (with optional decimals and K/M suffix) on both sides of a dash.

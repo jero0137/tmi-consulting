@@ -48,7 +48,9 @@ class DatabaseConnection:
     def get_connection(self) -> psycopg2.extensions.connection:
         """Return the active connection, re-establishing it if closed or broken."""
         if self._conn is None or self._conn.closed:
-            logger.info("Opening new database connection to '%s'", os.environ["POSTGRES_DB"])
+            logger.info(
+                "Opening new database connection to '%s'", os.environ["POSTGRES_DB"]
+            )
             self._conn = psycopg2.connect(
                 host=os.environ["POSTGRES_HOST"],
                 port=int(os.environ["POSTGRES_PORT"]),
@@ -56,8 +58,12 @@ class DatabaseConnection:
                 user=os.environ["POSTGRES_USER"],
                 password=os.environ["POSTGRES_PASSWORD"],
             )
-            logger.info("Connected to '%s' on %s:%s", os.environ["POSTGRES_DB"],
-                        os.environ["POSTGRES_HOST"], os.environ["POSTGRES_PORT"])
+            logger.info(
+                "Connected to '%s' on %s:%s",
+                os.environ["POSTGRES_DB"],
+                os.environ["POSTGRES_HOST"],
+                os.environ["POSTGRES_PORT"],
+            )
         return self._conn
 
     def close(self) -> None:
@@ -92,7 +98,9 @@ def load_to_postgres(df: pd.DataFrame, conn: psycopg2.extensions.connection) -> 
             row.job_schedule_type or None,
             row.job_work_from_home if pd.notna(row.job_work_from_home) else None,
             row.search_location or None,
-            row.job_posted_date.to_pydatetime() if pd.notna(row.job_posted_date) else None,
+            row.job_posted_date.to_pydatetime()
+            if pd.notna(row.job_posted_date)
+            else None,
             row.job_no_degree_mention if pd.notna(row.job_no_degree_mention) else None,
             row.job_health_insurance if pd.notna(row.job_health_insurance) else None,
             row.job_country or None,

@@ -8,7 +8,11 @@ from pipeline.utils import parse_job_skills, parse_job_type_skills
 logger = logging.getLogger(__name__)
 
 _BOOL_MAP: dict[str, bool] = {"True": True, "False": False}
-_BOOL_COLS: list[str] = ["job_work_from_home", "job_no_degree_mention", "job_health_insurance"]
+_BOOL_COLS: list[str] = [
+    "job_work_from_home",
+    "job_no_degree_mention",
+    "job_health_insurance",
+]
 _NUMERIC_COLS: list[str] = ["salary_year_avg", "salary_hour_avg"]
 
 

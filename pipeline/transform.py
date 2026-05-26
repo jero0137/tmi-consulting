@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import pandas as pd
 import psycopg2.extensions
@@ -94,7 +94,9 @@ def _build_language_cache(titles: List[str]) -> Dict[str, Tuple[str, float]]:
     logger.info("Running lingua on %d unique Latin-script titles", len(latin))
     detector = _get_lingua_detector()
     stripped_latin = [t.strip() for t in latin]
-    batch_results = detector.compute_language_confidence_values_in_parallel(stripped_latin)
+    batch_results = detector.compute_language_confidence_values_in_parallel(
+        stripped_latin
+    )
 
     for original, confidences in zip(latin, batch_results):
         if not confidences:
@@ -125,7 +127,9 @@ def _row_to_tuple(
     job_title_short = normalize_string(_na_to_none(row.job_title_short))
     job_title = normalize_string(_na_to_none(row.job_title))
 
-    lang, lang_conf = lang_cache.get(job_title, ("unknown", 0.0)) if job_title else (None, None)
+    lang, lang_conf = (
+        lang_cache.get(job_title, ("unknown", 0.0)) if job_title else (None, None)
+    )
 
     job_location_raw = normalize_string(_na_to_none(row.job_location))
     city, state, country, is_remote, fmt = parse_job_location(job_location_raw)
@@ -148,7 +152,9 @@ def _row_to_tuple(
     salary_hour = float(row.salary_hour_avg) if pd.notna(row.salary_hour_avg) else None
     company_name = clean_company_name(_na_to_none(row.company_name))
 
-    skills = row.job_skills if isinstance(row.job_skills, list) and row.job_skills else None
+    skills = (
+        row.job_skills if isinstance(row.job_skills, list) and row.job_skills else None
+    )
     type_skills_val = _na_to_none(row.job_type_skills)
     type_skills = Json(type_skills_val) if type_skills_val else None
 
@@ -196,12 +202,16 @@ def transform_and_load_staging(conn: psycopg2.extensions.connection) -> None:
     df = pd.read_sql("SELECT * FROM raw.data_jobs ORDER BY id", conn)
     logger.info("Read %d rows from raw.data_jobs", len(df))
 
-    unique_titles = [t for t in df["job_title"].dropna().unique().tolist() if isinstance(t, str)]
+    unique_titles = [
+        t for t in df["job_title"].dropna().unique().tolist() if isinstance(t, str)
+    ]
     logger.info("Detecting language for %d unique job_title values", len(unique_titles))
     lang_cache = _build_language_cache(unique_titles)
 
     cleaned_at = datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None)
-    rows = [_row_to_tuple(r, lang_cache, cleaned_at) for r in df.itertuples(index=False)]
+    rows = [
+        _row_to_tuple(r, lang_cache, cleaned_at) for r in df.itertuples(index=False)
+    ]
 
     with conn.cursor() as cur:
         cur.execute("TRUNCATE staging.stg_job_postings;")

@@ -52,6 +52,7 @@ def retry_with_backoff(
     Waits base_delay * 2^(attempt-1) seconds between attempts, capped at max_delay.
     Re-raises the last exception after all retries are exhausted.
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -63,14 +64,22 @@ def retry_with_backoff(
                     if attempt == max_retries:
                         _logger.error(
                             "All %d attempts failed for '%s': %s",
-                            max_retries, func.__name__, exc,
+                            max_retries,
+                            func.__name__,
+                            exc,
                         )
                         raise
                     delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
                     _logger.warning(
                         "Attempt %d/%d for '%s' failed: %s — retrying in %.1fs",
-                        attempt, max_retries, func.__name__, exc, delay,
+                        attempt,
+                        max_retries,
+                        func.__name__,
+                        exc,
+                        delay,
                     )
                     time.sleep(delay)
+
         return wrapper  # type: ignore[return-value]
+
     return decorator
