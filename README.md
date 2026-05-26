@@ -10,6 +10,7 @@ An end-to-end ELT pipeline that ingests job postings data from a CSV file, loads
 2. [Project Structure](#2-project-structure)
 3. [Execution Instructions](#3-execution-instructions)
 4. [Testing Guide](#4-testing-guide)
+5. [Continuous Integration (GitHub Actions)](#5-continuous-integration-github-actions)
 
 
 ---
@@ -345,4 +346,18 @@ docker compose exec airflow-scheduler \
 | Custom SQL | `test_salary_year_avg_positive`, `test_salary_hour_avg_positive`, `test_job_posted_date_not_future`, `test_job_skills_no_duplicates` |
 
 
+---
+
+## 5. Continuous Integration (GitHub Actions)
+
+This repository uses **GitHub Actions** for CI.
+
+- Workflow file: `.github/workflows/ci.yml`
+- Triggered on every push to `main` and every pull request targeting `main`
+- Runs the same quality gates used locally:
+  - `uv run ruff check .`
+  - `uv run ruff format --check .`
+  - `uv run pytest -v`
+
+CI ensures linting, formatting, and tests pass before changes are merged.
 
