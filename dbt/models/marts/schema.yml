@@ -73,17 +73,18 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values:
-                - programming
-                - cloud
-                - libraries
-                - analyst_tools
-                - databases
-                - other
-                - os
-                - webframeworks
-                - async
-                - sync
+              arguments:
+                values:
+                  - programming
+                  - cloud
+                  - libraries
+                  - analyst_tools
+                  - databases
+                  - other
+                  - os
+                  - webframeworks
+                  - async
+                  - sync
 
 # ---------------------------------------------------------------------------
 # Fact models
@@ -121,7 +122,8 @@ models:
       - name: salary_rate
         tests:
           - accepted_values:
-              values: ['year', 'hour']
+              arguments:
+                values: ['year', 'hour']
               config:
                 where: "salary_rate is not null"
 
