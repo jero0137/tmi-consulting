@@ -1,7 +1,9 @@
 version: "3.9"
 
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.9.1-python3.11
+  build:
+    context: .
+    dockerfile: Dockerfile.airflow
   env_file: .env
   environment:
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@postgres_airflow:5432/${AIRFLOW_POSTGRES_DB}"
@@ -12,13 +14,16 @@ x-airflow-common: &airflow-common
     # Override host so Airflow containers reach postgres_data by its Docker service name
     POSTGRES_HOST: postgres_data
     PIPELINE_DB_CONN: "postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_data:${POSTGRES_PORT}/${POSTGRES_DB}"
+    # Make the pipeline package importable inside every Airflow container
+    PYTHONPATH: /opt/airflow
   volumes:
-    - ./airflow/dags:/opt/airflow/dags      
-    - ./airflow/logs:/opt/airflow/logs       
-    - ./pipeline:/opt/airflow/pipeline       
-    - ./dbt:/opt/airflow/dbt                 
-    - ./data:/opt/airflow/data               
-    - ./.env:/opt/airflow/.env               
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/logs:/opt/airflow/logs
+    - ./pipeline:/opt/airflow/pipeline
+    - ./dbt:/opt/airflow/dbt
+    - ./data:/opt/airflow/data
+    - ./sql:/opt/airflow/sql
+    - ./.env:/opt/airflow/.env
   depends_on:
     postgres_airflow:
       condition: service_healthy

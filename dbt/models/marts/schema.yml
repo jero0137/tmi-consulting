@@ -73,17 +73,18 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values:
-                - programming
-                - cloud
-                - libraries
-                - analyst_tools
-                - databases
-                - other
-                - os
-                - webframeworks
-                - async
-                - sync
+              arguments:
+                values:
+                  - programming
+                  - cloud
+                  - libraries
+                  - analyst_tools
+                  - databases
+                  - other
+                  - os
+                  - webframeworks
+                  - async
+                  - sync
 
 # ---------------------------------------------------------------------------
 # Fact models
@@ -102,26 +103,30 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('companies')
-              field: company_id
+              arguments:
+                to: ref('companies')
+                field: company_id
       - name: location_id
         description: "FK to locations"
         tests:
           - not_null
           - relationships:
-              to: ref('locations')
-              field: location_id
+              arguments:
+                to: ref('locations')
+                field: location_id
       - name: schedule_id
         description: "FK to job_schedules"
         tests:
           - not_null
           - relationships:
-              to: ref('job_schedules')
-              field: schedule_id
+              arguments:
+                to: ref('job_schedules')
+                field: schedule_id
       - name: salary_rate
         tests:
           - accepted_values:
-              values: ['year', 'hour']
+              arguments:
+                values: ['year', 'hour']
               config:
                 where: "salary_rate is not null"
 
@@ -132,11 +137,13 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('job_postings')
-              field: job_id
+              arguments:
+                to: ref('job_postings')
+                field: job_id
       - name: skill_id
         tests:
           - not_null
           - relationships:
-              to: ref('skills')
-              field: skill_id
+              arguments:
+                to: ref('skills')
+                field: skill_id
