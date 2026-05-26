@@ -93,6 +93,86 @@ class TestCleanCompanyName:
         # After stripping "#", the remainder looks like a salary range
         assert clean_company_name("#$150K – $199.5K") is None
 
+    # --- parenthesised numeric code prefix ---
+
+    def test_strips_parens_code_prefix(self):
+        assert clean_company_name("(0110) Companhia IBM Portuguesa, S.A.") == (
+            "Companhia IBM Portuguesa, S.A."
+        )
+
+    def test_strips_parens_code_prefix_ibm(self):
+        assert clean_company_name("(0147) International Business Machines Corporation") == (
+            "International Business Machines Corporation"
+        )
+
+    # --- leading-zero and 5+-digit numeric code prefix ---
+
+    def test_strips_leading_zero_number_prefix(self):
+        assert clean_company_name("027 Parks Culture and Sport") == "Parks Culture and Sport"
+
+    def test_strips_leading_zero_long_number(self):
+        assert clean_company_name("00002 Citibank, N.A.") == "Citibank, N.A."
+
+    def test_strips_five_digit_number_prefix(self):
+        assert clean_company_name("12542 Citicorp Services India Private Limited") == (
+            "Citicorp Services India Private Limited"
+        )
+
+    def test_preserves_four_digit_company_name(self):
+        # "1872 Consulting" is a real company — must NOT strip "1872"
+        assert clean_company_name("1872 Consulting") == "1872 Consulting"
+
+    def test_preserves_two_digit_company_name(self):
+        assert clean_company_name("24 Seven Talent") == "24 Seven Talent"
+
+    def test_preserves_three_digit_company_name(self):
+        assert clean_company_name("500 Global") == "500 Global"
+
+    # --- leading dashes ---
+
+    def test_strips_double_dash_prefix(self):
+        assert clean_company_name("-  - Si-Ware Systems") == "Si-Ware Systems"
+
+    def test_strips_single_dash_prefix_no_space(self):
+        assert clean_company_name("-WorkEthix") == "WorkEthix"
+
+    def test_strips_single_dash_prefix_with_space(self):
+        assert clean_company_name("- INTM Groupe") == "INTM Groupe"
+
+    def test_only_dashes_returns_none(self):
+        assert clean_company_name("- -") is None
+
+    # --- not-a-company → "Not Identified" ---
+
+    def test_reviews_pattern_not_identified(self):
+        assert clean_company_name("20 reviews") == "Not Identified"
+
+    def test_reviews_singular_not_identified(self):
+        assert clean_company_name("5 review") == "Not Identified"
+
+    def test_reviews_case_insensitive_not_identified(self):
+        assert clean_company_name("100 REVIEWS") == "Not Identified"
+
+    def test_pure_digits_not_identified(self):
+        assert clean_company_name("3677") == "Not Identified"
+
+    def test_pure_digits_two_chars_not_identified(self):
+        assert clean_company_name("99") == "Not Identified"
+
+    def test_long_digit_code_not_identified(self):
+        assert clean_company_name("201000200M") == "Not Identified"
+
+    def test_short_digit_letter_company_kept(self):
+        # "3M", "2K", "7N" are real companies — two chars, not flagged
+        assert clean_company_name("3M") == "3M"
+
+    def test_two_char_digit_letter_kept(self):
+        assert clean_company_name("2K") == "2K"
+
+    def test_three_char_digit_letter_kept(self):
+        # "24S" appears 16 times in the dataset and is treated as a real company
+        assert clean_company_name("24S") == "24S"
+
 
 # ---------------------------------------------------------------------------
 # parse_job_location

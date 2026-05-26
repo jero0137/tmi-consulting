@@ -24,6 +24,25 @@ _SALARY_RANGE_RE = re.compile(
 _LEADING_HASH_RE = re.compile(r"^#+")
 _EDGE_QUOTES_RE = re.compile(r'^"+|"+$')
 
+# Numeric prefixes that are internal codes, not part of the company name.
+# (0110) IBM  →  strip the parenthesised code.
+_LEADING_PARENS_CODE_RE = re.compile(r"^\(\d+\)\s+")
+# 00002 Citibank  →  strip leading-zero numbers (clearly not part of the name).
+# 12542 Citicorp  →  strip 5-or-more-digit numbers (internal entity IDs).
+# Does NOT strip "1872 Consulting", "24 Seven Talent", etc. (≤4 digits, no leading zero).
+_LEADING_NUM_CODE_RE = re.compile(r"^(?:0\d+|\d{5,})\s+")
+# Leading dashes (with optional surrounding spaces): "-  - Si-Ware"  →  "Si-Ware".
+_LEADING_DASHES_RE = re.compile(r"^[-\s]+")
+
+# Strings that look like data artifacts rather than company names.
+# "5 reviews", "20 reviews"  →  "Not Identified".
+_REVIEWS_RE = re.compile(r"^\d+\s+reviews?$", re.IGNORECASE)
+# Pure digit strings of any length: "3677", "99"  →  "Not Identified".
+_PURE_DIGITS_RE = re.compile(r"^\d+$")
+# Digit string + 1–2 letters that is long enough to be a code: "201000200M".
+# Keeps short names like "3M" (len 2) and "24S" (len 3) which are real companies.
+_DIGIT_CODE_RE = re.compile(r"^\d+[A-Za-z]{1,2}$")
+
 # Unicode-script ranges for alphabet-based language detection (Rule 4, Step 1).
 _CYRILLIC_RE = re.compile(r"[Ѐ-ӿ]")
 _CHINESE_RE = re.compile(r"[一-鿿]")
@@ -45,24 +64,57 @@ def normalize_string(value: Optional[str]) -> Optional[str]:
 
 
 def clean_company_name(name: Optional[str]) -> Optional[str]:
-    """Apply Rule 1 to company_name in strict order.
+    """Apply Rule 1 to company_name in order.
 
-    1. Strip leading '#' characters.
-    2. Return None if the value is a salary range like "$150K – $199.5K".
-    3. Strip surrounding double quotes.
-    4. strip() whitespace.
-    5. Empty string -> None.
+    1.  Strip leading '#' characters.
+    2.  Return None if the value is a salary range like "$150K – $199.5K".
+    3.  Strip surrounding double quotes.
+    4.  strip() whitespace.
+    5.  Strip parenthesised numeric code prefix: "(0110) IBM" → "IBM".
+    6.  Strip leading-zero or 5+-digit numeric prefix: "027 Parks" → "Parks",
+        "12542 Citicorp" → "Citicorp".  Does NOT strip "1872 Consulting" etc.
+    7.  Strip leading dashes (and surrounding spaces): "- - Si-Ware" → "Si-Ware".
+    8.  strip() whitespace again.
+    9.  "Not Identified" if the remaining string is not a real company name:
+        • matches "N reviews" (e.g. "5 reviews")
+        • is a pure digit string (e.g. "3677", "99")
+        • is a long digit+letter code (e.g. "201000200M", len ≥ 5)
+    10. Empty string → None.
     """
     if not isinstance(name, str):
         return None
 
+    # 1. strip leading '#'
     cleaned = _LEADING_HASH_RE.sub("", name)
 
+    # 2. salary range → None
     if _SALARY_RANGE_RE.match(cleaned.strip()):
         return None
 
+    # 3–4. strip surrounding quotes and whitespace
     cleaned = _EDGE_QUOTES_RE.sub("", cleaned).strip()
-    return cleaned or None
+
+    # 5. strip "(NNN) " prefix
+    cleaned = _LEADING_PARENS_CODE_RE.sub("", cleaned).strip()
+
+    # 6. strip leading-zero or long numeric prefix
+    cleaned = _LEADING_NUM_CODE_RE.sub("", cleaned).strip()
+
+    # 7–8. strip leading dashes and re-strip whitespace
+    cleaned = _LEADING_DASHES_RE.sub("", cleaned).strip()
+
+    if not cleaned:
+        return None
+
+    # 9. detect non-company strings
+    if _REVIEWS_RE.match(cleaned):
+        return "Not Identified"
+    if _PURE_DIGITS_RE.match(cleaned):
+        return "Not Identified"
+    if _DIGIT_CODE_RE.match(cleaned) and len(cleaned) >= 5:
+        return "Not Identified"
+
+    return cleaned
 
 
 def parse_job_location(
