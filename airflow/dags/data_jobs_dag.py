@@ -11,6 +11,7 @@ apply_marts_constraints — apply PKs, FKs and indexes from
                           sql/marts_constraints.sql once all tables exist.
 dbt_test                — run all dbt schema + custom SQL tests.
 """
+
 from __future__ import annotations
 
 import logging
@@ -23,8 +24,8 @@ from airflow.operators.python import PythonOperator
 
 log = logging.getLogger(__name__)
 
-_CSV_PATH        = "/opt/airflow/data/raw/data_jobs.csv"
-_DBT_DIR         = "/opt/airflow/dbt"
+_CSV_PATH = "/opt/airflow/data/raw/data_jobs.csv"
+_DBT_DIR = "/opt/airflow/dbt"
 _SQL_CONSTRAINTS = "/opt/airflow/sql/marts_constraints.sql"
 
 
@@ -32,9 +33,11 @@ _SQL_CONSTRAINTS = "/opt/airflow/sql/marts_constraints.sql"
 # Callables                                                           #
 # ------------------------------------------------------------------ #
 
+
 def _ingest_raw() -> None:
     """Extract CSV → raw.data_jobs → staging.stg_job_postings + GX."""
     from pipeline import run_ingest
+
     run_ingest(_CSV_PATH)
 
 
@@ -65,12 +68,11 @@ def _apply_marts_constraints() -> None:
 with DAG(
     dag_id="data_jobs_pipeline",
     description="ELT: CSV → raw → staging → marts 3NF model",
-    schedule=None,          # triggered manually only
+    schedule=None,  # triggered manually only
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["elt", "data_jobs"],
 ) as dag:
-
     ingest_raw = PythonOperator(
         task_id="ingest_raw",
         python_callable=_ingest_raw,

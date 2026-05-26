@@ -1,4 +1,3 @@
-import time
 from unittest.mock import patch
 
 import pytest
@@ -13,7 +12,11 @@ from pipeline.utils import parse_job_skills, parse_job_type_skills, retry_with_b
 
 class TestParseJobSkills:
     def test_valid_list(self):
-        assert parse_job_skills("['python', 'sql', 'tableau']") == ["python", "sql", "tableau"]
+        assert parse_job_skills("['python', 'sql', 'tableau']") == [
+            "python",
+            "sql",
+            "tableau",
+        ]
 
     def test_single_item(self):
         assert parse_job_skills("['python']") == ["python"]
@@ -52,9 +55,14 @@ class TestParseJobTypeSkills:
         assert result == {"programming": ["python", "sql"]}
 
     def test_nested_dict(self):
-        raw = "{'analyst_tools': ['tableau'], 'programming': ['python', 'sql', 'nosql']}"
+        raw = (
+            "{'analyst_tools': ['tableau'], 'programming': ['python', 'sql', 'nosql']}"
+        )
         result = parse_job_type_skills(raw)
-        assert result == {"analyst_tools": ["tableau"], "programming": ["python", "sql", "nosql"]}
+        assert result == {
+            "analyst_tools": ["tableau"],
+            "programming": ["python", "sql", "nosql"],
+        }
 
     def test_empty_dict_literal(self):
         assert parse_job_type_skills("{}") == {}
@@ -149,7 +157,9 @@ class TestRetryWithBackoff:
     def test_backoff_delay_is_capped_at_max_delay(self):
         sleep_calls: list[float] = []
 
-        @retry_with_backoff(max_retries=4, base_delay=10.0, max_delay=15.0, exceptions=(RuntimeError,))
+        @retry_with_backoff(
+            max_retries=4, base_delay=10.0, max_delay=15.0, exceptions=(RuntimeError,)
+        )
         def func() -> None:
             raise RuntimeError("fail")
 

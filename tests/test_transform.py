@@ -5,14 +5,12 @@ integration tests. The real DB interaction is covered by running the pipeline
 manually or in an Airflow DAG end-to-end test.
 """
 
-import math
-from datetime import datetime, timezone
+from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
-import pytest
 from psycopg2.extras import Json
 
 from pipeline.transform import (
@@ -246,15 +244,15 @@ class TestRowToTuple:
         cache = {"Senior Data Engineer": ("en", 0.99)}
         result = _row_to_tuple(row, cache, CLEANED_AT)
         assert result[2] == "Senior Data Engineer"  # job_title
-        assert result[3] == "en"                    # job_title_lang
-        assert result[4] == 0.99                    # job_title_lang_confidence
+        assert result[3] == "en"  # job_title_lang
+        assert result[4] == 0.99  # job_title_lang_confidence
 
     def test_null_job_title_gives_null_lang(self):
         row = _make_row(job_title=float("nan"))
         result = _row_to_tuple(row, {}, CLEANED_AT)
-        assert result[2] is None   # job_title
-        assert result[3] is None   # job_title_lang
-        assert result[4] is None   # job_title_lang_confidence
+        assert result[2] is None  # job_title
+        assert result[3] is None  # job_title_lang
+        assert result[4] is None  # job_title_lang_confidence
 
     def test_job_title_not_in_cache_returns_unknown(self):
         row = _make_row(job_title="Uncached Title Here")
@@ -266,19 +264,19 @@ class TestRowToTuple:
         row = _make_row(job_location="Karachi, Pakistan")
         result = _row_to_tuple(row, {}, CLEANED_AT)
         assert result[5] == "Karachi, Pakistan"  # raw
-        assert result[6] == "Karachi"            # city
-        assert result[7] is None                 # state
-        assert result[8] == "Pakistan"           # country
-        assert result[9] is False                # is_remote
-        assert result[10] == "city_country"      # format
+        assert result[6] == "Karachi"  # city
+        assert result[7] is None  # state
+        assert result[8] == "Pakistan"  # country
+        assert result[9] is False  # is_remote
+        assert result[10] == "city_country"  # format
 
     def test_anywhere_location_sets_remote_flag(self):
         row = _make_row(job_location="Anywhere")
         result = _row_to_tuple(row, {}, CLEANED_AT)
-        assert result[5] == "Anywhere"   # original preserved
-        assert result[6] is None         # city
-        assert result[9] is True         # is_remote
-        assert result[10] == "remote"    # format
+        assert result[5] == "Anywhere"  # original preserved
+        assert result[6] is None  # city
+        assert result[9] is True  # is_remote
+        assert result[10] == "remote"  # format
 
     def test_schedule_type_lowercased(self):
         row = _make_row(job_schedule_type="Full-time and Internship")
@@ -434,7 +432,10 @@ class TestTransformAndLoadStaging:
 
         cv = _make_mock_lingua_result("en", 0.97)
         detector = MagicMock()
-        detector.compute_language_confidence_values_in_parallel.return_value = [[cv], [cv]]
+        detector.compute_language_confidence_values_in_parallel.return_value = [
+            [cv],
+            [cv],
+        ]
 
         with (
             patch("pipeline.transform.pd.read_sql", return_value=df),
@@ -462,13 +463,18 @@ class TestTransformAndLoadStaging:
 
         cv = _make_mock_lingua_result("en", 0.97)
         detector = MagicMock()
-        detector.compute_language_confidence_values_in_parallel.return_value = [[cv], [cv]]
+        detector.compute_language_confidence_values_in_parallel.return_value = [
+            [cv],
+            [cv],
+        ]
 
         with (
             patch("pipeline.transform.pd.read_sql", return_value=df),
             patch("pipeline.transform._get_lingua_detector", return_value=detector),
             patch("pipeline.transform.create_staging_table"),
-            patch("pipeline.transform.execute_values", side_effect=capture_execute_values),
+            patch(
+                "pipeline.transform.execute_values", side_effect=capture_execute_values
+            ),
         ):
             transform_and_load_staging(mock_conn)
 
@@ -488,19 +494,24 @@ class TestTransformAndLoadStaging:
 
         cv = _make_mock_lingua_result("en", 0.97)
         detector = MagicMock()
-        detector.compute_language_confidence_values_in_parallel.return_value = [[cv], [cv]]
+        detector.compute_language_confidence_values_in_parallel.return_value = [
+            [cv],
+            [cv],
+        ]
 
         with (
             patch("pipeline.transform.pd.read_sql", return_value=df),
             patch("pipeline.transform._get_lingua_detector", return_value=detector),
             patch("pipeline.transform.create_staging_table"),
-            patch("pipeline.transform.execute_values", side_effect=capture_execute_values),
+            patch(
+                "pipeline.transform.execute_values", side_effect=capture_execute_values
+            ),
         ):
             transform_and_load_staging(mock_conn)
 
         # row[1] is id=2 (Anywhere row); is_remote is index 9
         anywhere_row = captured_rows[1]
-        assert anywhere_row[9] is True   # location_is_remote
+        assert anywhere_row[9] is True  # location_is_remote
         assert anywhere_row[10] == "remote"
 
     def test_hash_company_cleaned_in_output(self):
@@ -517,13 +528,18 @@ class TestTransformAndLoadStaging:
 
         cv = _make_mock_lingua_result("en", 0.97)
         detector = MagicMock()
-        detector.compute_language_confidence_values_in_parallel.return_value = [[cv], [cv]]
+        detector.compute_language_confidence_values_in_parallel.return_value = [
+            [cv],
+            [cv],
+        ]
 
         with (
             patch("pipeline.transform.pd.read_sql", return_value=df),
             patch("pipeline.transform._get_lingua_detector", return_value=detector),
             patch("pipeline.transform.create_staging_table"),
-            patch("pipeline.transform.execute_values", side_effect=capture_execute_values),
+            patch(
+                "pipeline.transform.execute_values", side_effect=capture_execute_values
+            ),
         ):
             transform_and_load_staging(mock_conn)
 

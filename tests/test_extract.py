@@ -82,11 +82,23 @@ def test_extract_row_count(sample_csv: str) -> None:
 def test_extract_column_names(sample_csv: str) -> None:
     df = extract(sample_csv)
     expected = {
-        "job_title_short", "job_title", "job_location", "job_via",
-        "job_schedule_type", "job_work_from_home", "search_location",
-        "job_posted_date", "job_no_degree_mention", "job_health_insurance",
-        "job_country", "salary_rate", "salary_year_avg", "salary_hour_avg",
-        "company_name", "job_skills", "job_type_skills",
+        "job_title_short",
+        "job_title",
+        "job_location",
+        "job_via",
+        "job_schedule_type",
+        "job_work_from_home",
+        "search_location",
+        "job_posted_date",
+        "job_no_degree_mention",
+        "job_health_insurance",
+        "job_country",
+        "salary_rate",
+        "salary_year_avg",
+        "salary_hour_avg",
+        "company_name",
+        "job_skills",
+        "job_type_skills",
     }
     assert expected.issubset(set(df.columns))
 
@@ -101,6 +113,7 @@ def test_boolean_true_is_cast(sample_csv: str) -> None:
     # pandas stores booleans as np.True_ — use == not `is`
     assert df["job_work_from_home"].iloc[0] == True  # noqa: E712
 
+
 def test_boolean_false_is_cast(sample_csv: str) -> None:
     df = extract(sample_csv)
     assert df["job_work_from_home"].iloc[1] == False  # noqa: E712
@@ -109,19 +122,53 @@ def test_boolean_false_is_cast(sample_csv: str) -> None:
 def test_boolean_empty_becomes_nan(tmp_path: pytest.TempPathFactory) -> None:
     path = tmp_path / "empty_bool.csv"
     with open(path, "w", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=["job_title_short", "job_title",
-            "job_location", "job_via", "job_schedule_type", "job_work_from_home",
-            "search_location", "job_posted_date", "job_no_degree_mention",
-            "job_health_insurance", "job_country", "salary_rate",
-            "salary_year_avg", "salary_hour_avg", "company_name",
-            "job_skills", "job_type_skills"])
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=[
+                "job_title_short",
+                "job_title",
+                "job_location",
+                "job_via",
+                "job_schedule_type",
+                "job_work_from_home",
+                "search_location",
+                "job_posted_date",
+                "job_no_degree_mention",
+                "job_health_insurance",
+                "job_country",
+                "salary_rate",
+                "salary_year_avg",
+                "salary_hour_avg",
+                "company_name",
+                "job_skills",
+                "job_type_skills",
+            ],
+        )
         writer.writeheader()
-        writer.writerow({k: "" for k in ["job_title_short", "job_title",
-            "job_location", "job_via", "job_schedule_type", "job_work_from_home",
-            "search_location", "job_posted_date", "job_no_degree_mention",
-            "job_health_insurance", "job_country", "salary_rate",
-            "salary_year_avg", "salary_hour_avg", "company_name",
-            "job_skills", "job_type_skills"]})
+        writer.writerow(
+            {
+                k: ""
+                for k in [
+                    "job_title_short",
+                    "job_title",
+                    "job_location",
+                    "job_via",
+                    "job_schedule_type",
+                    "job_work_from_home",
+                    "search_location",
+                    "job_posted_date",
+                    "job_no_degree_mention",
+                    "job_health_insurance",
+                    "job_country",
+                    "salary_rate",
+                    "salary_year_avg",
+                    "salary_hour_avg",
+                    "company_name",
+                    "job_skills",
+                    "job_type_skills",
+                ]
+            }
+        )
 
     df = extract(str(path))
     assert pd.isna(df["job_work_from_home"].iloc[0])
@@ -139,11 +186,25 @@ def test_date_column_is_datetime(sample_csv: str) -> None:
 
 def test_date_invalid_becomes_nat(tmp_path: pytest.TempPathFactory) -> None:
     path = tmp_path / "bad_date.csv"
-    cols = ["job_title_short", "job_title", "job_location", "job_via",
-            "job_schedule_type", "job_work_from_home", "search_location",
-            "job_posted_date", "job_no_degree_mention", "job_health_insurance",
-            "job_country", "salary_rate", "salary_year_avg", "salary_hour_avg",
-            "company_name", "job_skills", "job_type_skills"]
+    cols = [
+        "job_title_short",
+        "job_title",
+        "job_location",
+        "job_via",
+        "job_schedule_type",
+        "job_work_from_home",
+        "search_location",
+        "job_posted_date",
+        "job_no_degree_mention",
+        "job_health_insurance",
+        "job_country",
+        "salary_rate",
+        "salary_year_avg",
+        "salary_hour_avg",
+        "company_name",
+        "job_skills",
+        "job_type_skills",
+    ]
     with open(path, "w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=cols)
         writer.writeheader()

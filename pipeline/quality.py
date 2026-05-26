@@ -16,7 +16,12 @@ _SUITE_NAME = "stg_job_postings"
 _DATASOURCE_NAME = "staging_pandas_ds"
 _ASSET_NAME = "stg_job_postings_asset"
 
-_VALID_LOCATION_FORMATS = ["remote", "country_only", "city_country", "city_state_country"]
+_VALID_LOCATION_FORMATS = [
+    "remote",
+    "country_only",
+    "city_country",
+    "city_state_country",
+]
 
 
 class DataQualityError(Exception):

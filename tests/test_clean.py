@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import pytest
 
 from pipeline.clean import (
     clean_company_name,
@@ -69,7 +68,7 @@ class TestCleanCompanyName:
 
     def test_preserves_non_latin_company_name(self):
         # Cyrillic company name — not a special character, should be preserved
-        assert clean_company_name('"Hamkorbank" АТБ') == "Hamkorbank\" АТБ"
+        assert clean_company_name('"Hamkorbank" АТБ') == 'Hamkorbank" АТБ'
 
     def test_strips_whitespace(self):
         assert clean_company_name("  Acme Corp  ") == "Acme Corp"
@@ -101,14 +100,17 @@ class TestCleanCompanyName:
         )
 
     def test_strips_parens_code_prefix_ibm(self):
-        assert clean_company_name("(0147) International Business Machines Corporation") == (
-            "International Business Machines Corporation"
-        )
+        assert clean_company_name(
+            "(0147) International Business Machines Corporation"
+        ) == ("International Business Machines Corporation")
 
     # --- leading-zero and 5+-digit numeric code prefix ---
 
     def test_strips_leading_zero_number_prefix(self):
-        assert clean_company_name("027 Parks Culture and Sport") == "Parks Culture and Sport"
+        assert (
+            clean_company_name("027 Parks Culture and Sport")
+            == "Parks Culture and Sport"
+        )
 
     def test_strips_leading_zero_long_number(self):
         assert clean_company_name("00002 Citibank, N.A.") == "Citibank, N.A."
@@ -197,28 +199,52 @@ class TestParseJobLocation:
     # --- country only ---
 
     def test_single_part_is_country_only(self):
-        assert parse_job_location("Chile") == (None, None, "Chile", False, "country_only")
+        assert parse_job_location("Chile") == (
+            None,
+            None,
+            "Chile",
+            False,
+            "country_only",
+        )
 
     def test_single_part_singapore(self):
-        assert parse_job_location("Singapore") == (None, None, "Singapore", False, "country_only")
+        assert parse_job_location("Singapore") == (
+            None,
+            None,
+            "Singapore",
+            False,
+            "country_only",
+        )
 
     # --- city, country ---
 
     def test_two_parts_city_country(self):
         assert parse_job_location("Karachi, Pakistan") == (
-            "Karachi", None, "Pakistan", False, "city_country"
+            "Karachi",
+            None,
+            "Pakistan",
+            False,
+            "city_country",
         )
 
     def test_two_parts_paris(self):
         assert parse_job_location("Paris, France") == (
-            "Paris", None, "France", False, "city_country"
+            "Paris",
+            None,
+            "France",
+            False,
+            "city_country",
         )
 
     # --- city, state, country ---
 
     def test_three_parts_city_state_country(self):
         assert parse_job_location("Jalisco del Refugio, Jalisco, Mexico") == (
-            "Jalisco del Refugio", "Jalisco", "Mexico", False, "city_state_country"
+            "Jalisco del Refugio",
+            "Jalisco",
+            "Mexico",
+            False,
+            "city_state_country",
         )
 
     def test_three_parts_bengaluru(self):
@@ -233,7 +259,9 @@ class TestParseJobLocation:
 
     def test_duplicate_city_state_accent_insensitive(self):
         # "Bogotá, Bogota, Colombia" — city and state are the same after accent folding
-        city, state, country, is_remote, fmt = parse_job_location("Bogotá, Bogota, Colombia")
+        city, state, country, is_remote, fmt = parse_job_location(
+            "Bogotá, Bogota, Colombia"
+        )
         assert city == "Bogotá"
         assert state is None
         assert country == "Colombia"
@@ -282,7 +310,10 @@ class TestNormalizeScheduleType:
         assert normalize_schedule_type("Full-time") == "full-time"
 
     def test_combined_type_preserved_and_lowercased(self):
-        assert normalize_schedule_type("Full-time and Internship") == "full-time and internship"
+        assert (
+            normalize_schedule_type("Full-time and Internship")
+            == "full-time and internship"
+        )
 
     def test_complex_combined_type(self):
         assert (
@@ -381,7 +412,9 @@ class TestDetectLanguage:
     # --- Step 2: Latin text routed to lingua (mocked) ---
 
     def test_latin_text_delegates_to_lingua(self):
-        with patch("pipeline.clean._lingua_top_confidence", return_value=("en", 0.98)) as mock_fn:
+        with patch(
+            "pipeline.clean._lingua_top_confidence", return_value=("en", 0.98)
+        ) as mock_fn:
             lang, conf = detect_language("Data Engineer")
         mock_fn.assert_called_once_with("Data Engineer")
         assert lang == "en"
@@ -389,7 +422,9 @@ class TestDetectLanguage:
 
     def test_lingua_internal_error_returns_unknown(self):
         # _lingua_top_confidence catches its own exceptions and returns unknown/0.0
-        with patch("pipeline.clean._lingua_top_confidence", return_value=("unknown", 0.0)):
+        with patch(
+            "pipeline.clean._lingua_top_confidence", return_value=("unknown", 0.0)
+        ):
             lang, conf = detect_language("Some latin text")
         assert lang == "unknown"
         assert conf == 0.0

@@ -1,0 +1,57 @@
+name: CI
+
+# ── Triggers ────────────────────────────────────────────────────────────────
+# Run on every push to main and on every pull-request that targets main.
+# This means: every time you open/update a PR you get immediate feedback
+# before merging, and every merge to main is verified as well.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ── Jobs ─────────────────────────────────────────────────────────────────────
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest   # free GitHub-hosted runner (Ubuntu 22.04)
+
+    steps:
+      # 1. Check out the repository code onto the runner machine.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Install Python. The version must match requires-python in pyproject.toml.
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Install uv — the fast package manager used in this project.
+      #    The official action also sets up caching so repeated runs are faster.
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      # 4. Install all dependencies (project + dev group) from the lockfile.
+      #    --frozen ensures we use exactly the pinned versions in uv.lock,
+      #    preventing "works on my machine but breaks in CI" surprises.
+      - name: Install dependencies
+        run: uv sync --frozen --group dev
+
+      # 5. Lint with ruff.
+      #    `ruff check` reports style/error violations.
+      #    `ruff format --check` fails if any file is not properly formatted
+      #    (same as running `black --check` but faster).
+      #    Both must pass before tests run.
+      - name: Lint (ruff check)
+        run: uv run ruff check .
+
+      - name: Format check (ruff format)
+        run: uv run ruff format --check .
+
+      # 6. Run pytest.
+      #    Tests in this project are pure unit tests — no database, no Docker.
+      #    -v gives verbose output so you can see which test failed.
+      #    The norecursedirs in pyproject.toml already excludes airflow/.
+      - name: Run tests
+        run: uv run pytest -v

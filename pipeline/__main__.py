@@ -1,4 +1,5 @@
 """CLI entry point: python -m pipeline [csv_path]"""
+
 import sys
 
 from pipeline import run_ingest

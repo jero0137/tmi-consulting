@@ -44,23 +44,33 @@ class TestBuildSuite:
 
     def test_checks_id_not_null(self):
         exps = _build_suite().expectations
-        assert any(isinstance(e, gx.expectations.ExpectColumnValuesToNotBeNull) for e in exps)
+        assert any(
+            isinstance(e, gx.expectations.ExpectColumnValuesToNotBeNull) for e in exps
+        )
 
     def test_checks_id_unique(self):
         exps = _build_suite().expectations
-        assert any(isinstance(e, gx.expectations.ExpectColumnValuesToBeUnique) for e in exps)
+        assert any(
+            isinstance(e, gx.expectations.ExpectColumnValuesToBeUnique) for e in exps
+        )
 
     def test_checks_row_count(self):
         exps = _build_suite().expectations
-        assert any(isinstance(e, gx.expectations.ExpectTableRowCountToBeBetween) for e in exps)
+        assert any(
+            isinstance(e, gx.expectations.ExpectTableRowCountToBeBetween) for e in exps
+        )
 
     def test_checks_confidence_between(self):
         exps = _build_suite().expectations
-        assert any(isinstance(e, gx.expectations.ExpectColumnValuesToBeBetween) for e in exps)
+        assert any(
+            isinstance(e, gx.expectations.ExpectColumnValuesToBeBetween) for e in exps
+        )
 
     def test_checks_location_format_in_set(self):
         exps = _build_suite().expectations
-        assert any(isinstance(e, gx.expectations.ExpectColumnValuesToBeInSet) for e in exps)
+        assert any(
+            isinstance(e, gx.expectations.ExpectColumnValuesToBeInSet) for e in exps
+        )
 
 
 # ---------------------------------------------------------------------------
