@@ -6,8 +6,9 @@ lingua's batched parallel API are critical to keep wall time reasonable.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -199,7 +200,7 @@ def transform_and_load_staging(conn: psycopg2.extensions.connection) -> None:
     logger.info("Detecting language for %d unique job_title values", len(unique_titles))
     lang_cache = _build_language_cache(unique_titles)
 
-    cleaned_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    cleaned_at = datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None)
     rows = [_row_to_tuple(r, lang_cache, cleaned_at) for r in df.itertuples(index=False)]
 
     with conn.cursor() as cur:
