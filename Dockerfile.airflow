@@ -1,0 +1,13 @@
+FROM apache/airflow:2.9.1-python3.11
+
+# Install dbt-postgres (matching local dev versions) and all pipeline deps.
+# Runs as the default `airflow` user — no root needed for pip installs.
+USER airflow
+RUN pip install --no-cache-dir \
+    "dbt-core==1.11.11" \
+    "dbt-postgres==1.10.0" \
+    "great-expectations>=1.0" \
+    "lingua-language-detector>=2.1.1" \
+    "pandas>=3.0.3" \
+    "psycopg2-binary>=2.9.12" \
+    "python-dotenv>=1.2.2"
