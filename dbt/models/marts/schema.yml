@@ -1,0 +1,142 @@
+version: 2
+
+# ---------------------------------------------------------------------------
+# Source: staging layer produced by Python pipeline
+# ---------------------------------------------------------------------------
+
+sources:
+  - name: staging
+    schema: staging
+    description: "Cleansed staging table written by pipeline/transform.py"
+    tables:
+      - name: stg_job_postings
+        description: "One row per raw job posting with cleaned columns"
+
+# ---------------------------------------------------------------------------
+# Dimension models
+# ---------------------------------------------------------------------------
+
+models:
+  - name: companies
+    description: "Unique companies deduplicated case-insensitively"
+    columns:
+      - name: company_id
+        description: "Surrogate key (ROW_NUMBER over company_name)"
+        tests:
+          - not_null
+          - unique
+      - name: company_name
+        description: "Cleaned company name"
+        tests:
+          - not_null
+
+  - name: locations
+    description: "Unique (city, country, is_remote) combinations"
+    columns:
+      - name: location_id
+        description: "Surrogate key"
+        tests:
+          - not_null
+          - unique
+      - name: is_remote
+        description: "True when location string was Anywhere / Remote / Remoto"
+        tests:
+          - not_null
+
+  - name: job_schedules
+    description: "Unique job schedule types"
+    columns:
+      - name: schedule_id
+        description: "Surrogate key"
+        tests:
+          - not_null
+          - unique
+      - name: schedule_type
+        description: "Lowercased schedule string, e.g. full-time, contractor"
+        tests:
+          - not_null
+
+  - name: skills
+    description: "Unique skills with their most common category"
+    columns:
+      - name: skill_id
+        description: "Surrogate key"
+        tests:
+          - not_null
+          - unique
+      - name: skill_name
+        description: "Lowercase skill name, e.g. python, sql"
+        tests:
+          - not_null
+      - name: skill_category
+        description: "Skill category from job_type_skills JSONB"
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - programming
+                - cloud
+                - libraries
+                - analyst_tools
+                - databases
+                - other
+                - os
+                - webframeworks
+                - async
+                - sync
+
+# ---------------------------------------------------------------------------
+# Fact models
+# ---------------------------------------------------------------------------
+
+  - name: job_postings
+    description: "One row per job posting with foreign keys to all dimensions"
+    columns:
+      - name: job_id
+        description: "Natural key from raw.data_jobs"
+        tests:
+          - not_null
+          - unique
+      - name: company_id
+        description: "FK to companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('companies')
+              field: company_id
+      - name: location_id
+        description: "FK to locations"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('locations')
+              field: location_id
+      - name: schedule_id
+        description: "FK to job_schedules"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('job_schedules')
+              field: schedule_id
+      - name: salary_rate
+        tests:
+          - accepted_values:
+              values: ['year', 'hour']
+              config:
+                where: "salary_rate is not null"
+
+  - name: job_skills
+    description: "Bridge table — one row per (job, skill) pair"
+    columns:
+      - name: job_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('job_postings')
+              field: job_id
+      - name: skill_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('skills')
+              field: skill_id
