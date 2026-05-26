@@ -1,0 +1,49 @@
+Table companies {
+  company_id    int           [pk, increment, note: "Surrogate key"]
+  company_name  varchar(255)  [not null, unique, note: "Nombre de la empresa normalizado"]
+}
+
+Table locations {
+  location_id   int           [pk, increment, note: "Surrogate key"]
+  raw_location  varchar(255)  [note: "Valor original del CSV — job_location"]
+  city          varchar(100)  [note: "Ciudad extraida del location string"]
+  country       varchar(100)  [not null, note: "Pais — viene de job_country"]
+  is_remote     boolean       [not null, default: false, note: "True si job_location es Anywhere o work_from_home es true"]
+}
+
+Table job_schedules {
+  schedule_id    int           [pk, increment, note: "Surrogate key"]
+  schedule_type  varchar(100)  [not null, unique, note: "Ej: Full-time, Contractor, Full-time and Part-time"]
+}
+
+Table skills {
+  skill_id        int           [pk, increment, note: "Surrogate key"]
+  skill_name      varchar(100)  [not null, unique, note: "Nombre del skill en minuscula — ej: python, sql, aws"]
+  skill_category  varchar(50)   [note: "Categoria del job_type_skills — ej: programming, cloud, libraries"]
+}
+
+Table job_postings {
+  job_id               int           [pk, increment, note: "Surrogate key"]
+  job_title            varchar(255)  [not null, note: "Titulo original del job posting"]
+  job_title_short      varchar(100)  [not null, note: "Titulo estandarizado — ej: Data Engineer, Data Scientist"]
+  job_via              varchar(100)  [note: "Plataforma donde se publico — ej: LinkedIn, Indeed"]
+  job_posted_date      timestamp     [note: "Fecha y hora de publicacion"]
+  work_from_home       boolean       [not null, default: false]
+  no_degree_mention    boolean       [not null, default: false]
+  health_insurance     boolean       [not null, default: false]
+  salary_rate          varchar(10)   [note: "year o hour — null si no se menciona salario"]
+  salary_year_avg      numeric(10,2) [note: "Salario anual promedio — null en ~95% de los registros"]
+  salary_hour_avg      numeric(10,2) [note: "Salario por hora promedio — null en ~98% de los registros"]
+  company_id           int           [not null, ref: > companies.company_id]
+  location_id          int           [not null, ref: > locations.location_id]
+  schedule_id          int           [not null, ref: > job_schedules.schedule_id]
+}
+
+Table job_skills {
+  job_id    int  [not null, ref: > job_postings.job_id, note: "FK a job_postings"]
+  skill_id  int  [not null, ref: > skills.skill_id,    note: "FK a skills"]
+
+  indexes {
+    (job_id, skill_id) [pk, name: "pk_job_skills"]
+  }
+}

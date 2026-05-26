@@ -1,0 +1,32 @@
+CREATE SCHEMA IF NOT EXISTS staging;
+
+CREATE TABLE IF NOT EXISTS staging.stg_job_postings (
+    id                          INTEGER PRIMARY KEY,
+    job_title_short             TEXT,
+    job_title                   TEXT,
+    job_title_lang              TEXT,
+    job_title_lang_confidence   NUMERIC(5,4),
+    job_location                TEXT,
+    location_city               TEXT,
+    location_state              TEXT,
+    location_country            TEXT,
+    location_is_remote          BOOLEAN NOT NULL DEFAULT FALSE,
+    location_format             TEXT,
+    job_via                     TEXT,
+    job_schedule_type           TEXT,
+    job_work_from_home          BOOLEAN,
+    search_location             TEXT,
+    country_final               TEXT,
+    job_posted_date             TIMESTAMP,
+    job_no_degree_mention       BOOLEAN,
+    job_health_insurance        BOOLEAN,
+    job_country                 TEXT,
+    salary_rate                 TEXT,
+    salary_year_avg             NUMERIC,
+    salary_hour_avg             NUMERIC,
+    company_name                TEXT,
+    job_skills                  TEXT[],
+    job_type_skills             JSONB,
+    loaded_at                   TIMESTAMP,
+    cleaned_at                  TIMESTAMP NOT NULL DEFAULT NOW()
+);
